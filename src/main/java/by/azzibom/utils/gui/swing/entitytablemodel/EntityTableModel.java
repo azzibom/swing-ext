@@ -26,24 +26,40 @@ import java.util.stream.Stream;
 public class EntityTableModel<E> extends AbstractTableModel implements TableModel, List<E> {
 
     /**
+     * карта соответствия примитивных типов типап оберткам
+     * */
+    private static final Map<Class<?>, Class<?>> PRIMITIVE_MAP;
+    static {
+        Map<Class<?>, Class<?>> map = new HashMap<>(8);
+        map.put(byte.class, Byte.class);
+        map.put(short.class, Short.class);
+        map.put(int.class, Integer.class);
+        map.put(long.class, Long.class);
+        map.put(float.class, Float.class);
+        map.put(double.class, Double.class);
+        map.put(boolean.class, Boolean.class);
+        map.put(char.class, Character.class);
+        PRIMITIVE_MAP = Collections.unmodifiableMap(map);
+    }
+    /**
      * метакласс для получения метаданных
      * */
-    private Class<E> clazz;
+    private final Class<E> clazz;
 
     /**
      * список с данными
      * */
-    private List<E> data;
+    private final List<E> data;
 
     /**
      * список с колонками
      * */
-    private List<Col<E>> cols = new ArrayList<>();
+    private final List<Col<E>> cols = new ArrayList<>();
 
     /**
      * объект фабрики объектов колонок на основе метода или поля
      * */
-    private ColFactory factory = new ColFactory();
+    private final ColFactory factory = new ColFactory();
 
     public EntityTableModel(Class<E> clazz) {
         this(clazz, new ArrayList<>());
@@ -108,23 +124,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
 
     private static Class<?> getPrimitiveWrapperClass(Class<?> type) {
         if (type.isPrimitive()) {
-            if (byte.class == type) {
-                return Byte.class;
-            } else if (short.class == type) {
-                return Short.class;
-            } else if (int.class == type) {
-                return Integer.class;
-            } else if (long.class == type) {
-                return Long.class;
-            } else if (float.class == type) {
-                return Float.class;
-            } else if (double.class == type) {
-                return Double.class;
-            } else if (boolean.class == type) {
-                return Boolean.class;
-            } else if (char.class == type) {
-                return Character.class;
-            }
+            return PRIMITIVE_MAP.get(type);
         }
         throw new IllegalArgumentException("type '" + type + "' is not primitive");
     }
@@ -178,8 +178,8 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
      */
     private class FieldCol<EE> implements Col<EE> {
 
-        private Field field;
-        private JTableColumn tableColumn;
+        private final Field field;
+        private final JTableColumn tableColumn;
 
         private String name;
         private Method read;
@@ -303,8 +303,8 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
      */
     private class MethodCol<EE> implements Col<EE> {
 
-        private Method method;
-        private JTableColumn tableColumn;
+        private final Method method;
+        private final JTableColumn tableColumn;
 
         private String name;
         private Method read;
@@ -573,7 +573,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
 
     private class EntityTableListIterator<EE> implements ListIterator<EE>{
 
-        private ListIterator<EE> origin;
+        private final ListIterator<EE> origin;
 
         public EntityTableListIterator(ListIterator<EE> origin) {
             this.origin = origin;
