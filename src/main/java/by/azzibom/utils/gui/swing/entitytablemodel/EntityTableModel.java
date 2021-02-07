@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 public class EntityTableModel<E> extends AbstractTableModel implements TableModel, List<E> {
 
     /**
-     * карта соответствия примитивных типов типап оберткам
+     * карта соответствия примитивных типов типам оберткам
      * */
     private static final Map<Class<?>, Class<?>> PRIMITIVE_MAP;
     static {
@@ -42,7 +42,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         PRIMITIVE_MAP = Collections.unmodifiableMap(map);
     }
     /**
-     * метакласс для получения метаданных
+     * мета класс для получения метаданных
      * */
     private final Class<E> clazz;
 
@@ -219,6 +219,10 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
 
         private void initColumnClass() {
             columnClass = tableColumn.columnClass() == void.class ? field.getType() : tableColumn.columnClass();
+
+            if (columnClass.isPrimitive()) {
+                columnClass = getPrimitiveWrapperClass(columnClass);
+            }
         }
 
         private void initReadMethod() {
