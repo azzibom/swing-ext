@@ -6,7 +6,7 @@
 
     <groupId>by.azzibom.utils.gui.swing</groupId>
     <artifactId>entity-table-model</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
 
     <description>JTable Swing table model on annotations, for mapping entity classes to a table.</description>
 
