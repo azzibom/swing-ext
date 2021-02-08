@@ -1,4 +1,4 @@
-package by.azzibom.utils.gui.swing.entitytablemodel;
+package by.azzibom.gui.swing.entitytablemodel;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,14 +9,16 @@ import java.lang.annotation.Target;
  * аннотация для пометки полей/методов класса как колонок для {@link javax.swing.JTable}
  * при использовании модели таблицы {@link EntityTableModel}
  *
- * если поле помеченно аннотацией, то считывание и установка значения происходит непосредственно через поле,
+ * если поле помечено аннотацией, то считывание и установка значения происходит непосредственно через поле,
  * если не указаны методы акцесоры
  *
  * если метод помечен аннотацией, то вызывается непосредственно метод
+ *
  * метод не должен принимать параметров
  *
- *
  * @author Ihar Misevich
+ * @version 1.0
+ * @since 1.0
  */
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

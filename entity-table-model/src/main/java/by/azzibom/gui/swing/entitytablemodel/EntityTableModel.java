@@ -1,4 +1,4 @@
-package by.azzibom.utils.gui.swing.entitytablemodel;
+package by.azzibom.gui.swing.entitytablemodel;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
@@ -14,11 +14,9 @@ import java.util.stream.Stream;
 
 
 /**
- * модель таблицы для сущностей на аннотации
- *
- * поддерживает вставку, обновление и удаление объектов
- *
- * не производит наблюдение за изменением определенной сущности
+ * table model for entities on annotations.<br>
+ * supports inserting, updating and deleting objects/rows.<br>
+ * does not observe the change of a specific entity.<br>
  *
  * @author Ihar Misevich
  * @version 1.0
@@ -26,9 +24,9 @@ import java.util.stream.Stream;
 public class EntityTableModel<E> extends AbstractTableModel implements TableModel, List<E> {
 
     /**
-     * карта соответствия примитивных типов типам оберткам
+     * map of primitive types to wrapper types
      * */
-    private static final Map<Class<?>, Class<?>> PRIMITIVE_MAP;
+    public static final Map<Class<?>, Class<?>> PRIMITIVE_MAP;
     static {
         Map<Class<?>, Class<?>> map = new HashMap<>(8);
         map.put(byte.class, Byte.class);
@@ -42,22 +40,22 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         PRIMITIVE_MAP = Collections.unmodifiableMap(map);
     }
     /**
-     * мета класс для получения метаданных
+     * entity meta class for getting metadata
      * */
     private final Class<E> clazz;
 
     /**
-     * список с данными
+     * data/rows list
      * */
     private final List<E> data;
 
     /**
-     * список с колонками
+     * cols list
      * */
     private final List<Col<E>> cols = new ArrayList<>();
 
     /**
-     * объект фабрики объектов колонок на основе метода или поля
+     * col factory
      * */
     private final ColFactory factory = new ColFactory();
 
@@ -76,7 +74,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         setFields(clazz);
     }
 
-    private void setFields(Class<E> clazz) {
+    protected void setFields(Class<E> clazz) {
         Field[] fields = clazz.getDeclaredFields();
         for (Field f : fields) {
             setCol(f);
@@ -87,7 +85,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         }
     }
 
-    private void setCol(AccessibleObject ao) {
+    protected void setCol(AccessibleObject ao) {
         if (ao.isAnnotationPresent(JTableColumn.class)) {
             JTableColumn tableColumn = ao.getAnnotation(JTableColumn.class);
             int index = tableColumn.index();
@@ -122,7 +120,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         return col.columnClass();
     }
 
-    private static Class<?> getPrimitiveWrapperClass(Class<?> type) {
+    protected static Class<?> getPrimitiveWrapperClass(Class<?> type) {
         if (type.isPrimitive()) {
             return PRIMITIVE_MAP.get(type);
         }
@@ -132,7 +130,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         Col<E> col = cols.get(columnIndex);
-        return col.isCellEditable();
+        return col.isColEditable();
     }
 
     @Override
@@ -151,30 +149,56 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
     }
 
 
-    // классы представители колонок из полей и методов
+    // classes representing columns from fields and methods
 
     /**
-     * интерфейс колонки
+     * col interface, describes table columns
      *
      * @author Ihar Misevich
+     * @version 1.0
+     * @since 1.0
      */
     interface Col<E> {
 
+        /**
+         * column name
+         * @return column name
+         * */
         String name();
 
+        /**
+         * get column value
+         * @param row object for extraction value
+         * @return column value
+         * */
         Object get(E row);
 
+        /**
+         * set column value
+         * @param row object to insert the value
+         * @param value value to insert
+         * */
         void set(E row, Object value);
 
-        boolean isCellEditable();
+        /**
+         * column editable or not editable
+         * @return true if column editable
+         * */
+        boolean isColEditable();
 
+        /**
+         * column value type
+         * @return column value type
+         * */
         Class<?> columnClass();
     }
 
     /**
-     * реализация интерфейса колонки на основе поля класса
+     * implementation of a {@link Col} interface based on a class field
      *
      * @author Ihar Misevich
+     * @version 1.0
+     * @since 1.0
      */
     private class FieldCol<EE> implements Col<EE> {
 
@@ -290,7 +314,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         }
 
         @Override
-        public boolean isCellEditable() {
+        public boolean isColEditable() {
             return tableColumn.cellEditable();
         }
 
@@ -301,9 +325,11 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
     }
 
     /**
-     * реализация интерфейса колонки на основе метода
+     * implementation of a {@link Col} interface based on a method
      *
      * @author Ihar Misevich
+     * @version 1.0
+     * @since 1.0
      */
     private class MethodCol<EE> implements Col<EE> {
 
@@ -406,7 +432,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         }
 
         @Override
-        public boolean isCellEditable() {
+        public boolean isColEditable() {
             return write != null;
         }
 
@@ -417,7 +443,11 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
     }
 
     /**
-     * класс фабрики колонок для модели
+     * {@link Col} factory
+     *
+     * @author Ihar Misevich
+     * @version 1.0
+     * @since 1.0
      * */
     private class ColFactory {
 
@@ -434,7 +464,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
     }
 
 
-    // методы списка
+    // List methods
 
     @Override
     public int size() {
@@ -575,7 +605,11 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         return data.lastIndexOf(o);
     }
 
-    private class EntityTableListIterator<EE> implements ListIterator<EE>{
+    /**
+     * @version 1.0
+     * @since 1.0
+     * */
+    protected class EntityTableListIterator<EE> implements ListIterator<EE>{
 
         private final ListIterator<EE> origin;
 

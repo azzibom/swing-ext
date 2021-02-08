@@ -16,4 +16,4 @@ JTable Swing table model on annotations, for mapping entity classes to a table.
     execute ```mvn clean package```.
 
 ## License
-  This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+  This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details
