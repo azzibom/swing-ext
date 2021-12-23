@@ -10,9 +10,9 @@
     <version>2.0</version>
   </parent>
 
-  <artifactId>gui-iadapters</artifactId>
+  <artifactId>string-cell-renderer</artifactId>
 
-  <name>Swing/AWT adapters</name>
-  <description>Adapter interfaces for Swing and AWT listeners by default methods Java8.</description>
+  <name>StringCellRenderer</name>
+  <description>Swing *CellRenderer implementation for convert entity to string for JTable and JList and/or JComboBox</description>
 
 </project>

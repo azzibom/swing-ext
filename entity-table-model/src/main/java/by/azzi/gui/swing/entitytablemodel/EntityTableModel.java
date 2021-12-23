@@ -1,4 +1,4 @@
-package by.azzibom.gui.swing.entitytablemodel;
+package by.azzi.gui.swing.entitytablemodel;
 
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;

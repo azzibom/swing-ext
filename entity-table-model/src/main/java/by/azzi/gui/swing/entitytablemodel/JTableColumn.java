@@ -1,4 +1,4 @@
-package by.azzibom.gui.swing.entitytablemodel;
+package by.azzi.gui.swing.entitytablemodel;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

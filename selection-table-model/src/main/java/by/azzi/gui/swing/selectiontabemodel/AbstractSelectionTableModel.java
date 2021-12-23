@@ -1,4 +1,4 @@
-package by.azzibom.gui.swing.selectiontabemodel;
+package by.azzi.gui.swing.selectiontabemodel;
 
 import javax.swing.table.AbstractTableModel;
 

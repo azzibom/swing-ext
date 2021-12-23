@@ -1,4 +1,4 @@
-package by.azzibom.gui.swing.entitytablemodel;
+package by.azzi.gui.swing.entitytablemodel;
 
 /**
  * interface of convert object to another type
