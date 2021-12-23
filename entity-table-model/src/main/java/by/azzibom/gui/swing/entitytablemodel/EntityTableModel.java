@@ -156,7 +156,6 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
      *
      * @author Ihar Misevich
      * @version 1.0
-     * @since 1.0
      */
     interface Col<E> {
 
@@ -198,7 +197,6 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
      *
      * @author Ihar Misevich
      * @version 1.0
-     * @since 1.0
      */
     private class FieldCol<EE> implements Col<EE> {
 
@@ -329,7 +327,6 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
      *
      * @author Ihar Misevich
      * @version 1.0
-     * @since 1.0
      */
     private class MethodCol<EE> implements Col<EE> {
 
@@ -447,7 +444,6 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
      *
      * @author Ihar Misevich
      * @version 1.0
-     * @since 1.0
      * */
     private class ColFactory {
 
@@ -606,8 +602,8 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
     }
 
     /**
+     * @author Ihar Misevich
      * @version 1.0
-     * @since 1.0
      * */
     protected class EntityTableListIterator<EE> implements ListIterator<EE>{
 

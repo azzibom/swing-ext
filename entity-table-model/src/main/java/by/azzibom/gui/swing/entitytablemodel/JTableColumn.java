@@ -18,7 +18,6 @@ import java.lang.annotation.Target;
  *
  * @author Ihar Misevich
  * @version 1.0
- * @since 1.0
  */
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

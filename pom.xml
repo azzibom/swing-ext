@@ -4,15 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>by.azzibom.gui.swing</groupId>
-  <artifactId>swing-ext</artifactId>
-  <packaging>pom</packaging>
+  <groupId>by.azzi.utils.gui</groupId>
+  <artifactId>swing-ext-parent</artifactId>
   <version>1.0</version>
+  <packaging>pom</packaging>
 
   <description>JTable Swing table model on annotations, for mapping entity classes to a table.</description>
   <modules>
     <module>entity-table-model</module>
     <module>selection-table-model</module>
+    <module>gui-iadapters</module>
   </modules>
 
   <properties>
@@ -47,9 +48,20 @@
     </plugins>
   </build>
 
-<!--  <licenses>-->
-<!--    <license>-->
-<!--      <url>https://mit-license.org/</url>-->
-<!--    </license>-->
-<!--  </licenses>-->
+  <developers>
+    <developer>
+      <name>Ihar Misevich</name>
+      <email>iharmisevich@yandex.by</email>
+      <roles>
+        <role>maintainer</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <licenses>
+    <license>
+      <url>https://mit-license.org/</url>
+    </license>
+  </licenses>
 </project>
