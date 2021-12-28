@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>entity-table-model</artifactId>
+  <version>2.1</version>
 
   <name>EntityTableModel</name>
   <description>JTable Swing table model on annotations, for mapping entity classes to a table</description>

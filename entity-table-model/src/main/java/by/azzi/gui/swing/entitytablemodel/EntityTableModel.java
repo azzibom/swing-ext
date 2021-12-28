@@ -19,14 +19,15 @@ import java.util.stream.Stream;
  * does not observe the change of a specific entity.<br>
  *
  * @author Ihar Misevich
- * @version 1.0
+ * @version 1.1
  */
 public class EntityTableModel<E> extends AbstractTableModel implements TableModel, List<E> {
 
     /**
      * map of primitive types to wrapper types
-     * */
+     */
     public static final Map<Class<?>, Class<?>> PRIMITIVE_MAP;
+
     static {
         Map<Class<?>, Class<?>> map = new HashMap<>(8);
         map.put(byte.class, Byte.class);
@@ -39,24 +40,25 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         map.put(char.class, Character.class);
         PRIMITIVE_MAP = Collections.unmodifiableMap(map);
     }
+
     /**
      * entity meta class for getting metadata
-     * */
+     */
     private final Class<E> clazz;
 
     /**
      * data/rows list
-     * */
+     */
     private final List<E> data;
 
     /**
      * cols list
-     * */
+     */
     private final List<Col<E>> cols = new ArrayList<>();
 
     /**
      * col factory
-     * */
+     */
     private final ColFactory factory = new ColFactory();
 
     public EntityTableModel(Class<E> clazz) {
@@ -75,26 +77,28 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
     }
 
     protected void setFields(Class<E> clazz) {
+        final PriorityQueue<Col<E>> queue = new PriorityQueue<>((o1, o2) -> {
+            JTableColumn tableColumn1 = o1.tableColumn();
+            int index1 = tableColumn1.index();
+            JTableColumn tableColumn2 = o2.tableColumn();
+            int index2 = tableColumn2.index();
+            return index1 - index2;
+        });
+
         Field[] fields = clazz.getDeclaredFields();
         for (Field f : fields) {
-            setCol(f);
+            setCol(queue, f);
         }
         Method[] methods = clazz.getDeclaredMethods();
         for (Method m : methods) {
-            setCol(m);
+            setCol(queue, m);
         }
+        cols.addAll(queue);
     }
 
-    protected void setCol(AccessibleObject ao) {
+    protected void setCol(PriorityQueue<Col<E>> sortedSet, AccessibleObject ao) {
         if (ao.isAnnotationPresent(JTableColumn.class)) {
-            JTableColumn tableColumn = ao.getAnnotation(JTableColumn.class);
-            int index = tableColumn.index();
-
-            if (index != -1) {
-                cols.add(index, factory.getA(ao));
-            } else {
-                cols.add(factory.getA(ao));
-            }
+            sortedSet.add(factory.createCol(ao));
         }
     }
 
@@ -157,46 +161,53 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
      * @author Ihar Misevich
      * @version 1.0
      */
-    interface Col<E> {
+    interface Col<EE> {
 
         /**
          * column name
+         *
          * @return column name
-         * */
+         */
         String name();
 
         /**
          * get column value
+         *
          * @param row object for extraction value
          * @return column value
-         * */
-        Object get(E row);
+         */
+        Object get(EE row);
 
         /**
          * set column value
-         * @param row object to insert the value
+         *
+         * @param row   object to insert the value
          * @param value value to insert
-         * */
-        void set(E row, Object value);
+         */
+        void set(EE row, Object value);
 
         /**
          * column editable or not editable
+         *
          * @return true if column editable
-         * */
+         */
         boolean isColEditable();
 
         /**
          * column value type
+         *
          * @return column value type
-         * */
+         */
         Class<?> columnClass();
+
+        JTableColumn tableColumn();
     }
 
     /**
      * implementation of a {@link Col} interface based on a class field
      *
      * @author Ihar Misevich
-     * @version 1.0
+     * @version 1.1
      */
     private class FieldCol<EE> implements Col<EE> {
 
@@ -248,19 +259,25 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         }
 
         private void initReadMethod() {
+            if (tableColumn.readMethod().isEmpty()) {
+                return;
+            }
             try {
                 read = EntityTableModel.this.clazz.getDeclaredMethod(tableColumn.readMethod());
             } catch (NoSuchMethodException e) {
-                read = null;
+                throw new RuntimeException("read method not found", e);
             }
         }
 
         private void initWriteMethod() {
+            if (tableColumn.writeMethod().isEmpty()) {
+                return;
+            }
             try {
                 Class<?> returnType = read != null ? read.getReturnType() : field.getType();
                 write = EntityTableModel.this.clazz.getDeclaredMethod(tableColumn.writeMethod(), returnType);
             } catch (NoSuchMethodException e) {
-                write = null;
+                throw new RuntimeException("write method not found", e);
             }
         }
 
@@ -278,7 +295,6 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
                     res = read.invoke(row);
                 } else {
                     field.setAccessible(true);
-
                     res = field.get(row);
                 }
 
@@ -320,13 +336,18 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         public Class<?> columnClass() {
             return columnClass;
         }
+
+        @Override
+        public JTableColumn tableColumn() {
+            return tableColumn;
+        }
     }
 
     /**
      * implementation of a {@link Col} interface based on a method
      *
      * @author Ihar Misevich
-     * @version 1.0
+     * @version 1.1
      */
     private class MethodCol<EE> implements Col<EE> {
 
@@ -375,9 +396,23 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
 
         private void initWriteMethod() {
             try {
-                write = EntityTableModel.this.clazz.getDeclaredMethod(tableColumn.writeMethod(), method.getReturnType());
+                final String methodName = method.getName();
+                String writeMethodName = tableColumn.writeMethod();
+                if (writeMethodName.isEmpty()) {
+                    int begin = 0;
+                    String writeMethodNamePrefix = "set";
+                    if (methodName.startsWith("get")) {
+                        begin = 3;
+                    } else if (methodName.startsWith("is")) {
+                        begin = 2;
+                    } else {
+                        writeMethodNamePrefix = "";
+                    }
+                    writeMethodName = writeMethodNamePrefix + methodName.substring(begin);
+                }
+                write = EntityTableModel.this.clazz.getDeclaredMethod(writeMethodName, method.getReturnType());
             } catch (NoSuchMethodException e) {
-                write = null;
+                throw new RuntimeException("write method not found", e);
             }
         }
 
@@ -437,17 +472,22 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
         public Class<?> columnClass() {
             return columnClass;
         }
+
+        @Override
+        public JTableColumn tableColumn() {
+            return tableColumn;
+        }
     }
 
     /**
      * {@link Col} factory
      *
      * @author Ihar Misevich
-     * @version 1.0
-     * */
+     * @version 1.1
+     */
     private class ColFactory {
 
-        public Col<E> getA(AccessibleObject ao) {
+        public Col<E> createCol(AccessibleObject ao) {
             if (ao instanceof Field) {
                 return new FieldCol<E>((Field) ao);
             } else if (ao instanceof Method) {
@@ -495,7 +535,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
     @Override
     public boolean add(E e) {
         boolean res = data.add(e);
-       if (res) fireTableDataChanged();
+        if (res) fireTableDataChanged();
         return res;
     }
 
@@ -513,7 +553,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
 
     @Override
     public boolean addAll(Collection<? extends E> c) {
-        boolean res =  data.addAll(c);
+        boolean res = data.addAll(c);
         if (res) fireTableDataChanged();
         return res;
     }
@@ -521,7 +561,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
     @Override
     public boolean addAll(int index, Collection<? extends E> c) {
         boolean res = data.addAll(index, c);
-        if(res) fireTableDataChanged();
+        if (res) fireTableDataChanged();
         return res;
     }
 
@@ -586,7 +626,7 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
 
     @Override
     public E remove(int index) {
-        E e =  data.remove(index);
+        E e = data.remove(index);
         fireTableDataChanged();
         return e;
     }
@@ -604,8 +644,8 @@ public class EntityTableModel<E> extends AbstractTableModel implements TableMode
     /**
      * @author Ihar Misevich
      * @version 1.0
-     * */
-    protected class EntityTableListIterator<EE> implements ListIterator<EE>{
+     */
+    protected class EntityTableListIterator<EE> implements ListIterator<EE> {
 
         private final ListIterator<EE> origin;
 
