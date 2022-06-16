@@ -11,6 +11,7 @@
   </parent>
 
   <artifactId>string-cell-renderer</artifactId>
+  <version>2.1</version>
 
   <name>StringCellRenderer</name>
   <description>Swing *CellRenderer implementation for convert entity to string for JTable and JList and/or JComboBox</description>
